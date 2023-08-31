@@ -13,10 +13,6 @@ dotenv.config();
 connectDb()
 
 app.use(express.json())
-app.get("/", (req, res) => {
-    res.send("Api is running")
-
-});
 
 
 app.use("/api/user", userRoutes);
@@ -29,10 +25,10 @@ app.use("/api/message", messageRoutes);
 const __dirname1 = path.resolve();
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, '/frontend/build')));
+  app.use(express.static(path.join(__dirname1, '/frontend/build')));
    // Catch-all route for client-side routing
    app.get('*', (req, res) => {
-     res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
+     res.sendFile(path.resolve(__dirname1, 'frontend', 'build', 'index.html'));
    });
 
 } else {
@@ -59,7 +55,7 @@ const io = require("socket.io")(server, {
 });
 
 io.on("connection", (socket) => {
-    console.log('connect socket io');
+    
     socket.on("setup", (userData) => {
         socket.join(userData._id);
         socket.emit("connected")
@@ -73,7 +69,7 @@ io.on("connection", (socket) => {
     socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
     socket.on("new message", (newMessageRecieved) => {
-        console.log(newMessageRecieved, "newMessageRecieved")
+        
        var chat = newMessageRecieved.chat;
 
        if(!chat.users) return console.log('chat users not defined');
