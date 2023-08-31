@@ -10,6 +10,6 @@
 # to start font end application react
 # npm install or yarn install
 # to start server
-# npm or yarn install 
+# npm or yarn install and npm or yarn start
 # npm or yarn start or yarn server
 
