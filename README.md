@@ -11,4 +11,5 @@
 # npm install or yarn install
 # to start server
 # npm or yarn install 
+# npm or yarn start or yarn server
 
