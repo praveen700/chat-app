@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
-    "build": "yarn install --prefix frontend && yarn run build --prefix frontend"
+    "build": "yarn install && yarn install --prefix frontend && yarn run build --prefix frontend"
 
   },
   "dependencies": {
