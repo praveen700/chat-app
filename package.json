@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
-    "build": "yarn add --legacy-peer-deps --prefix && yarn run build --prefix frontend"
+    "build": "yarn add --legacy-peer-deps --prefix frontend && yarn run build --prefix frontend"
 
   },
   "dependencies": {
