@@ -81,19 +81,20 @@ const MyChats = ({ fetchAgain }) => {
         d="flex"
         flexDir="column"
         p={3}
-        bg="#F8F8F8"
+        bg="#fff"
         w="100%"
         h="100%"
         borderRadius="lg"
         overflowY="hidden"
+        
       >
         {chats ? (
-          <Stack overflowY="scroll">
+          <Stack overflowY="scroll" >
             {chats.map((chat) => (
               <Box
                 onClick={() => setSelectedChat(chat)}
                 cursor="pointer"
-                bg={selectedChat === chat ? "#38B2AC" : "#E8E8E8"}
+                bg={selectedChat === chat ? "#4f5f76" : "#e1e8f0"}
                 color={selectedChat === chat ? "white" : "black"}
                 px={3}
                 py={2}

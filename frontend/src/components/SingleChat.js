@@ -4,7 +4,7 @@ import { Box, Text } from "@chakra-ui/layout";
 import "./styles.css";
 import { IconButton, Spinner, useToast } from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import ProfileModal from "./miscellaneous/ProfileModal";
@@ -15,7 +15,11 @@ import animationData from "../animations/typing.json";
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import { ChatState } from "../Context/ChatProvider";
-const ENDPOINT = "http://localhost:5000"; // "https://web-chat.herokuapp.com"; -> After deployment
+import Peer from "simple-peer"
+import VideoCallModal from "./VideoCallModal";
+
+// "https://web-chat.herokuapp.com"; -> After deployment
+const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -26,6 +30,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [typing, setTyping] = useState(false);
   const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
+  // video call
+  const [me, setMe] = useState("")
+  const [stream, setStream] = useState()
+  const [receivingCall, setReceivingCall] = useState(false)
+  const [caller, setCaller] = useState("")
+  const [callerSignal, setCallerSignal] = useState()
+  const [callAccepted, setCallAccepted] = useState(false)
+  const [idToCall, setIdToCall] = useState("")
+  const [callEnded, setCallEnded] = useState(false)
+  const [name, setName] = useState("");
+
+  const myVideo = useRef()
+  const userVideo = useRef()
+  const connectionRef = useRef()
+
 
   const defaultOptions = {
     loop: true,
@@ -38,15 +57,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const { selectedChat, setSelectedChat, user, notification, setNotification } =
     ChatState();
 
-    useEffect(() => {
-      socket = io(ENDPOINT);
-      socket.emit("setup", user);
-      socket.on("connected", () => setSocketConnected(true));
-      socket.on("typing", () => setIsTyping(true));
-      socket.on("stop typing", () => setIsTyping(false));
-  
-      // eslint-disable-next-line
-    }, []);
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", () => setSocketConnected(true));
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
+
+    // eslint-disable-next-line
+  }, []);
 
 
   const fetchMessages = async () => {
@@ -124,7 +143,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     selectedChatCompare = selectedChat;
     // eslint-disable-next-line
   }, [selectedChat]);
-  
+
   useEffect(() => {
     socket.on("message recieved", (newMessageRecieved) => {
       if (
@@ -162,6 +181,75 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }, timerLength);
   };
 
+  //vcall useEffect 
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+      setStream(stream);
+      myVideo.current.srcObject = stream;
+    });
+
+    socket.on("me", (id) => {
+      setMe(id);
+    });
+
+    socket.on("calluser", (data) => {
+      setReceivingCall(true);
+      setCaller(data.from);
+      setName(data.name);
+      setCallerSignal(data.signal);
+    });
+
+  }, []);
+
+  const callUser = (id) => {
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream: stream
+    })
+    peer.on("signal", (data) => {
+      socket.emit("callUser", {
+        userToCall: id,
+        signalData: data,
+        from: me,
+        name: name
+      })
+    })
+    peer.on("stream", (stream) => {
+      userVideo.current.srcObject = stream
+    })
+    socket.on("callAccepted", (signal) => {
+			setCallAccepted(true)
+			peer.signal(signal)
+		})
+
+		connectionRef.current = peer
+
+  }
+
+  const answerCall =() =>  {
+		setCallAccepted(true)
+		const peer = new Peer({
+			initiator: false,
+			trickle: false,
+			stream: stream
+		})
+		peer.on("signal", (data) => {
+			socket.emit("answerCall", { signal: data, to: caller })
+		})
+		peer.on("stream", (stream) => {
+			userVideo.current.srcObject = stream
+		})
+
+		peer.signal(callerSignal)
+		connectionRef.current = peer
+	}
+
+  const leaveCall = () => {
+		setCallEnded(true)
+		connectionRef.current.destroy()
+	}
+  
   return (
     <>
       {selectedChat ? (
@@ -185,9 +273,28 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               (!JSON.parse(selectedChat.isGroupChat) ? (
                 <>
                   {getSender(user, selectedChat.users)}
+                  <Box d="flex" >
+                    <VideoCallModal
+                      myVideo={myVideo}
+                      callAccepted={callAccepted}
+                      callEnded={callEnded}
+                      userVideo={userVideo}
+                      setName={setName}
+                      name={name}
+                      idToCall={idToCall}
+                      setIdToCall={setIdToCall}
+                      leaveCall={leaveCall}
+                      callUser={callUser}
+                      answerCall={answerCall}
+                      stream={stream}
+                      me={me}
+                      receivingCall={receivingCall}
+                    />
                   <ProfileModal
                     user={getSenderFull(user, selectedChat.users)}
                   />
+
+                  </Box>
                 </>
               ) : (
                 <>
@@ -261,6 +368,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           </Text>
         </Box>
       )}
+      
     </>
   );
 };

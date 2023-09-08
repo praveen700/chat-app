@@ -1,5 +1,4 @@
 const express = require('express');
-const dotenv = require('dotenv');
 const app = express();
 const connectDb = require('./config/db.js');
 const userRoutes = require('./routes/userRoutes');
@@ -7,9 +6,8 @@ const chatRoutes = require('./routes/chatRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const { notFound, errorHandler } = require('./middilwares/errorMiddileware.js');
 const path = require("path");
+require('dotenv').config()
 
-
-dotenv.config();
 connectDb()
 
 app.use(express.json())
@@ -80,6 +78,20 @@ io.on("connection", (socket) => {
         
        });
     });
+    // video call
+    socket.emit("me", socket.id)
+
+    socket.on("disconnect", () => {
+      socket.broadcast.emit("callEnded")
+    })
+  
+    socket.on("callUser", (data) => {
+      io.to(data.userToCall).emit("callUser", { signal: data.signalData, from: data.from, name: data.name })
+    })
+  
+    socket.on("answerCall", (data) => {
+      io.to(data.to).emit("callAccepted", data.signal)
+    })
 
     // disconnect socket
     socket.off("setup", () => {

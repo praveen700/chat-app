@@ -1,13 +1,12 @@
 {
   "name": "chat-app",
-  "version": "1",
+  "version": "1.0.0",
   "main": "server.js",
   "license": "Praveen",
   "scripts": {
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
     "build": "yarn install && yarn install --prefix frontend && yarn run build --prefix frontend"
-
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
