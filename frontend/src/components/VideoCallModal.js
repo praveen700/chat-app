@@ -57,23 +57,14 @@ const VideoCallModal = (props) => {
         >{`Open ${size} Modal`}</IconButton>
       ))}
 
-      <Modal onClose={onClose} size={size} isOpen={isOpen}>
+      <Modal onClose={onClose} size={size} isOpen={isOpen}  >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Modal Title</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <div className="container">
-              <div className="video-container">
-                <div className="video">
-                  {stream && <video playsInline muted ref={myVideo} autoPlay style={{ width: "300px" }} />}
-                </div>
-                <div className="video">
-                  {callAccepted && !callEnded ?
-                    <video playsInline ref={userVideo} autoPlay style={{ width: "300px" }} /> :
-                    null}
-                </div>
-              </div>
+            
               <div className="myId">
                 <Input
                   id="filled-basic"
@@ -112,6 +103,16 @@ const VideoCallModal = (props) => {
                   )}
                   {idToCall}
                 </Box>
+              </div>
+              <div className="video-container">
+                <div className="video">
+                  {stream && <video playsInline muted ref={myVideo} autoPlay style={{ width: "300px" }} />}
+                </div>
+                <div className="video">
+                  {callAccepted && !callEnded ?
+                    <video playsInline ref={userVideo} autoPlay style={{ width: "300px" }} /> :
+                    null}
+                </div>
               </div>
               <div>
                 {receivingCall && !callAccepted ? (
